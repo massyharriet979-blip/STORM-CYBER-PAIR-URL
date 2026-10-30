@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>STORM CYBER MD - Pair</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a120f;color:#d8e8de;font-family:'JetBrains Mono',monospace;min-height:100vh;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+canvas{position:fixed;inset:0;pointer-events:none}
+#stars{z-index:-2}#electric{z-index:-1;opacity:0.55}
+.header{position:sticky;top:0;z-index:50;display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:rgba(10,18,15,0.9);backdrop-filter:blur(14px);border-bottom:1px solid rgba(30,215,96,0.08)}
+.menu-btn{width:44px;height:44px;background:#131f1b;border:1px solid rgba(30,215,96,0.15);border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;z-index:51}
+.menu-btn span{width:20px;height:2px;background:#9ab0a2;display:block;position:relative}
+.menu-btn span::before,.menu-btn span::after{content:'';position:absolute;left:0;width:100%;height:2px;background:#9ab0a2}
+.menu-btn span::before{top:-7px}.menu-btn span::after{top:7px}
+.sidebar{position:fixed;top:0;left:-300px;width:285px;height:100%;background:#0f1a15;border-right:1px solid rgba(30,215,96,0.12);z-index:100;transition:0.35s cubic-bezier(0.32,0.72,0,1);overflow-y:auto}
+.sidebar.open{left:0}
+.sidebar-top{display:flex;justify-content:space-between;padding:20px 16px;align-items:center;border-bottom:1px solid rgba(30,215,96,0.06)}
+.close-btn{width:36px;height:36px;background:#131f1b;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.menu-list{padding:14px}
+.menu-item{display:flex;gap:14px;padding:16px;border-radius:16px;margin-bottom:10px;background:#131f1b;border:1px solid rgba(30,215,96,0.07);color:#cde8d6;text-decoration:none;font-size:14px;cursor:pointer}
+.menu-item:active{transform:scale(0.98)}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:90;display:none}.overlay.show{display:block}
+.hero{text-align:center;padding:28px 20px 8px}
+.avatar-wrap{width:116px;height:116px;margin:0 auto 16px;position:relative}
+.avatar-wrap img{width:100%;height:100%;object-fit:cover;border-radius:24px;border:2px solid rgba(30,215,96,0.35);box-shadow:0 0 32px rgba(30,215,96,0.3)}
+.hero h1{font-family:'Space Grotesk',sans-serif;font-size:22px;color:#7ff0b0;letter-spacing:0.4px}
+.hero p{font-size:10px;letter-spacing:2.6px;color:#5a7362;margin-top:4px}
+.badge{display:inline-flex;gap:8px;margin:20px auto 0;background:#131f1b;border:1px solid rgba(30,215,96,0.12);padding:9px 18px;border-radius:100px;font-size:12.5px;align-items:center}
+.dot{width:8px;height:8px;background:#1ed760;border-radius:50%;box-shadow:0 0 8px #1ed760;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+.card{max-width:430px;margin:26px auto;background:linear-gradient(180deg,#131f1b 0%, #0e1a14 100%);border:1px solid rgba(30,215,96,0.08);border-radius:24px;padding:22px 18px;box-shadow:0 12px 50px rgba(0,0,0,0.45)}
+.label{font-size:10px;letter-spacing:1.8px;color:#5a7362;margin-bottom:10px;text-transform:uppercase}.label.mt{margin-top:20px}
+.select-box{width:100%;background:#0a120f;border:1px solid rgba(30,215,96,0.14);border-radius:14px;padding:15px 14px;color:#cde8d6;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+.input-row{display:flex;gap:10px}
+.code{width:96px;text-align:center;background:#0a120f;border:1px solid rgba(30,215,96,0.12);border-radius:14px;padding:15px;color:#7aa58a;outline:none}
+.num{flex:1;background:#0a120f;border:1px solid rgba(30,215,96,0.12);border-radius:14px;padding:15px;color:#cde8d6;outline:none;font-size:15px}
+.btn-main{width:100%;margin-top:20px;background:linear-gradient(90deg,#0f9d5a,#1e5bd7);border:none;border-radius:14px;padding:16px;font-weight:700;color:#fff;cursor:pointer;font-size:14px;letter-spacing:0.3px}
+.statusMsg{margin-top:14px;font-size:12px;color:#8aa898;text-align:center;min-height:18px}
+
+/* COUNTRY SHEET - exact like screenshot */
+.bottom-sheet{position:fixed;bottom:-100%;left:0;right:0;z-index:200;background:linear-gradient(180deg,#15221b,#0e1a14);border-top:1px solid rgba(30,215,96,0.15);border-radius:26px 26px 0 0;padding:0;transition:0.45s cubic-bezier(0.32,0.72,0,1);max-height:88vh;display:flex;flex-direction:column}
+.bottom-sheet.open{bottom:0}
+.sheet-h{padding:18px 18px 0;display:flex;justify-content:space-between;align-items:center}
+.sheet-h h3{font-size:18px;font-family:'Space Grotesk',sans-serif}
+.closeX{width:36px;height:36px;background:rgba(255,255,255,0.06);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.sheet-search{padding:14px 18px}
+.sheet-search input{width:100%;background:#0a120f;border:1px solid rgba(30,215,96,0.12);border-radius:12px;padding:14px;color:#cde8d6;outline:none}
+.country-list{overflow-y:auto;flex:1;padding:0 10px 20px}
+.country-option{padding:14px 12px;display:flex;gap:12px;align-items:center;cursor:pointer;border-bottom:1px solid rgba(30,215,96,0.05);border-radius:12px}
+.country-option:active{background:rgba(30,215,96,0.08)}
+.c-plus{margin-left:auto;color:#1ed760;font-weight:700;font-size:14px}
+
+/* pair modal */
+.pair-modal{position:fixed;inset:0;z-index:250;background:rgba(0,0,0,0.7);display:none;align-items:flex-end;justify-content:center}
+.pair-modal.show{display:flex}
+.pair-box{width:100%;max-width:440px;background:linear-gradient(180deg,#151f1b,#0e1a14);border-top:1px solid rgba(30,215,96,0.15);border-radius:26px 26px 0 0;padding:26px;text-align:center;animation:up .35s}
+@keyframes up{from{transform:translateY(50px)}to{transform:translateY(0)}}
+.pair-code{font-size:30px;font-weight:700;color:#6cf0b0;letter-spacing:5px;margin:20px auto;padding:20px;background:#0a120f;border:1.8px dashed rgba(30,215,96,0.3);border-radius:16px;font-family:'Space Grotesk',sans-serif;text-shadow:0 0 18px rgba(30,215,96,0.4)}
+.copy-btn{width:100%;background:#0a120f;border:1px solid rgba(30,215,96,0.14);border-radius:14px;padding:15px;display:flex;align-items:center;justify-content:center;gap:8px;color:#cde8d6;font-weight:600;cursor:pointer;margin-bottom:12px}
+.copy-btn.copied{background:rgba(30,215,96,0.15);border-color:#1ed760;color:#1ed760}
+.hint{font-size:12px;color:#5a7362;line-height:1.5;margin-bottom:20px}
+.cancel-btn{width:100%;background:#131f1b;border:1px solid rgba(30,215,96,0.08);border-radius:14px;padding:15px;color:#fff;font-weight:700;cursor:pointer}
+.paired-item{display:flex;justify-content:space-between;align-items:center;padding:16px;background:#0a120f;border:1px solid rgba(30,215,96,0.08);border-radius:14px;margin:0 18px 10px}
+.icon-btn{width:38px;height:38px;background:#131f1b;border:1px solid rgba(30,215,96,0.1);border-radius:11px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#1ed760}
+.stat-item{display:flex;justify-content:space-between;padding:16px;background:#0a120f;border:1px solid rgba(30,215,96,0.08);border-radius:14px;margin:0 18px 10px}
+.confirm-box{margin:10px 18px 20px;background:#0a120f;border-radius:14px;padding:16px;text-align:center;display:none}.confirm-box.show{display:block}
+.btn-yes{background:#7ff0b0;color:#000;border:none;border-radius:20px;padding:11px 20px;font-weight:700;font-size:13px;cursor:pointer}.btn-no{background:rgba(255,255,255,0.08);color:#fff;border:none;border-radius:20px;padding:11px 20px;font-size:13px;cursor:pointer;margin-left:8px}
+.loading-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.55);display:none;align-items:center;justify-content:center}.loading-overlay.show{display:flex}
+.loading-box{background:#132218;border:1px solid rgba(30,215,96,0.12);border-radius:22px;padding:30px 52px;display:flex;flex-direction:column;align-items:center;gap:14px}
+.spinner{width:36px;height:36px;border:3px solid rgba(255,255,255,0.15);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+<canvas id="electric"></canvas>
+
+<div class="header">
+<div class="menu-btn" id="menuBtn"><span></span></div>
+<div><b>STORM CYBER MD</b></div>
+<div style="width:44px"></div>
+</div>
+
+<div class="sidebar" id="sidebar">
+<div class="sidebar-top"><h2>Menu</h2><div class="close-btn" id="closeMenu">✕</div></div>
+<div class="menu-list">
+<div class="menu-item" id="goMyNumbers">📱 My Numbers</div>
+<div class="menu-item" id="goNumbers">📊 Numbers</div>
+<div class="menu-item" id="goSession">⚡ Session</div>
+<a class="menu-item" href="https://bot-info-puce.onrender.com">🏠 Back To Home</a>
+<a class="menu-item" href="https://storm-x-portfolio-1.onrender.com" target="_blank">👤 About Owner</a>
+<a class="menu-item" href="https://storm-cyber-info.onrender.com" target="_blank">🤖 About STORM Bot</a>
+</div>
+</div>
+<div class="overlay" id="overlay"></div>
+
+<div class="hero">
+<div class="avatar-wrap"><img src="https://files.catbox.moe/pznw3z.jpg" alt="STORM"></div>
+<h1>STORM CYBER MD</h1>
+<p>NEXT-GEN WHATSAPP PROTOCOL</p>
+<div class="badge"><div class="dot" id="dot"></div><span id="badgeText">Loading stats...</span></div>
+</div>
+
+<div class="card" id="pairCard">
+<div class="label">LINK YOUR DEVICE</div>
+<div class="label mt">COUNTRY</div>
+<div class="select-box" id="openCountry"><span id="countryLabel">— Select country —</span><span>▼</span></div>
+<div class="label mt">WHATSAPP NUMBER</div>
+<div class="input-row"><input class="code" id="code" value="+256" readonly><input class="num" id="number" placeholder="7XXXXXXXX" inputmode="numeric"></div>
+<button class="btn-main" id="pairBtn">Connect WhatsApp</button>
+<div class="statusMsg" id="statusMsg">Enter number without leading 0</div>
+</div>
+
+<!-- COUNTRY SHEET -->
+<div class="bottom-sheet" id="countrySheet">
+<div class="sheet-h"><h3>Select country</h3><div class="closeX" id="closeCountry">✕</div></div>
+<div class="sheet-search"><input id="countrySearch" placeholder="🔍 Search country..."></div>
+<div class="country-list" id="countryList"></div>
+</div>
+
+<!-- MY NUMBERS -->
+<div class="bottom-sheet" id="pairedSheet"><div class="sheet-h"><h3>My Numbers</h3><div class="closeX" id="closePaired">✕</div></div><div style="height:16px"></div><div id="pairedList"></div><div class="confirm-box" id="confirmBox"><p id="confirmText">Disconnect?</p><div style="margin-top:12px"><button class="btn-yes" id="yesDis">Yes, disconnect</button><button class="btn-no" id="noDis">Cancel</button></div></div></div>
+
+<!-- NUMBERS -->
+<div class="bottom-sheet" id="numbersSheet"><div class="sheet-h"><h3>Numbers</h3><div class="closeX" id="closeNumbers">✕</div></div><div style="height:16px"></div>
+<div class="stat-item"><b>Paired</b><span id="sPaired" style="color:#1ed760">0</span></div>
+<div class="stat-item"><b>Connected</b><span id="sConnected" style="color:#1ed760">0</span></div>
+<div class="stat-item"><b>Disconnected</b><span id="sDis">0</span></div>
+<div class="stat-item"><b>Total</b><span id="sTotal">0</span></div>
+</div>
+
+<!-- PAIR CODE -->
+<div class="pair-modal" id="pairModal"><div class="pair-box">
+<div class="label" style="text-align:left">YOUR PAIRING CODE</div>
+<div class="pair-code" id="pairCode">---- ----</div>
+<button class="copy-btn" id="copyBtn">⎙ Copy Code</button>
+<p class="hint">Open WhatsApp → Linked Devices → Link with phone number, then enter this code.</p>
+<button class="cancel-btn" id="cancelPair">Cancel</button>
+<div class="statusMsg" id="pairStatus" style="margin-top:12px"></div>
+</div></div>
+
+<div class="loading-overlay" id="loadingOverlay"><div class="loading-box"><div class="spinner"></div><p>Disconnecting...</p></div></div>
+
+<script>
+const API="http://ptero-node.silence.name.ng:2505";
+let pending=null,myNumbers=JSON.parse(localStorage.getItem('storm_my_numbers')||'[]'),lastCopy="";
+
+// MENU FIX - both click + touch
+const sb=document.getElementById('sidebar'),ov=document.getElementById('overlay');
+function toggleMenu(){sb.classList.toggle('open');ov.classList.toggle('show');}
+document.getElementById('menuBtn').addEventListener('click',toggleMenu);
+document.getElementById('menuBtn').addEventListener('touchstart',e=>{e.preventDefault();toggleMenu();},{passive:false});
+document.getElementById('closeMenu').addEventListener('click',toggleMenu);
+ov.addEventListener('click',toggleMenu);
+document.getElementById('goMyNumbers').addEventListener('click',()=>{renderMyNumbers();document.getElementById('pairedSheet').classList.add('open');toggleMenu();});
+document.getElementById('goNumbers').addEventListener('click',()=>{document.getElementById('numbersSheet').classList.add('open');toggleMenu();});
+document.getElementById('goSession').addEventListener('click',()=>{document.getElementById('pairCard').scrollIntoView({behavior:'smooth'});toggleMenu();});
+document.getElementById('closePaired').onclick=()=>document.getElementById('pairedSheet').classList.remove('open');
+document.getElementById('closeNumbers').onclick=()=>document.getElementById('numbersSheet').classList.remove('open');
+document.getElementById('closeCountry').onclick=()=>document.getElementById('countrySheet').classList.remove('open');
+document.getElementById('openCountry').onclick=()=>document.getElementById('countrySheet').classList.add('open');
+
+// STARS slow
+const cs=document.getElementById('stars'),xs=cs.getContext('2d');let w,h,stars=[];
+function rs(){w=cs.width=innerWidth;h=cs.height=innerHeight}addEventListener('resize',rs);rs();
+for(let i=0;i<130;i++)stars.push({x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.3+0.2,s:Math.random()*0.22+0.04});
+(function anim(){xs.clearRect(0,0,w,h);stars.forEach(s=>{s.y-=s.s;if(s.y<0)s.y=h;xs.beginPath();xs.arc(s.x,s.y,s.r,0,Math.PI*2);xs.fillStyle=`rgba(120,240,180,${0.18+s.r*0.2})`;xs.fill()});requestAnimationFrame(anim)})();
+
+// ELECTRIC STRIKES small, after 3 sec, 6->4->2->5 random
+const ce=document.getElementById('electric'),xe=ce.getContext('2d');
+function re(){ce.width=innerWidth;ce.height=innerHeight}addEventListener('resize',re);re();
+function strike(x,y,len){
+ xe.beginPath();xe.moveTo(x,y);
+ let cx=x,cy=y;
+ for(let i=0;i<6;i++){cx+= (Math.random()-0.5)*12; cy+= len/6; xe.lineTo(cx,cy);}
+ xe.strokeStyle=`rgba(${120+Math.random()*80},255,${140+Math.random()*60},${0.7+Math.random()*0.3})`;
+ xe.lineWidth=0.6+Math.random()*1.1;xe.shadowBlur=8;xe.shadowColor='#1ed760';xe.stroke();xe.shadowBlur=0;
+}
+function spawnStrikes(){
+ xe.clearRect(0,0,ce.width,ce.height);
+ let count=[6,4,2,5,3,6,2][Math.floor(Math.random()*7)];
+ for(let i=0;i<count;i++){let x=Math.random()*ce.width, y=Math.random()*ce.height*0.6; let len=12+Math.random()*28; strike(x,y,len);}
+ setTimeout(()=>xe.clearRect(0,0,ce.width,ce.height),260);
+}
+setInterval(spawnStrikes,3000);
+setTimeout(spawnStrikes,1200);
+
+// COUNTRIES - 240+
+const countries=[{f:"🇦🇫",n:"Afghanistan",c:"93"},{f:"🇦🇱",n:"Albania",c:"355"},{f:"🇩🇿",n:"Algeria",c:"213"},{f:"🇦🇴",n:"Angola",c:"244"},{f:"🇦🇷",n:"Argentina",c:"54"},{f:"🇦🇺",n:"Australia",c:"61"},{f:"🇦🇹",n:"Austria",c:"43"},{f:"🇧🇩",n:"Bangladesh",c:"880"},{f:"🇧🇪",n:"Belgium",c:"32"},{f:"🇧🇯",n:"Benin",c:"229"},{f:"🇧🇼",n:"Botswana",c:"267"},{f:"🇧🇷",n:"Brazil",c:"55"},{f:"🇧🇮",n:"Burundi",c:"257"},{f:"🇨🇲",n:"Cameroon",c:"237"},{f:"🇨🇦",n:"Canada",c:"1"},{f:"🇹🇩",n:"Chad",c:"235"},{f:"🇨🇱",n:"Chile",c:"56"},{f:"🇨🇳",n:"China",c:"86"},{f:"🇨🇴",n:"Colombia",c:"57"},{f:"🇨🇩",n:"DR Congo",c:"243"},{f:"🇨🇬",n:"Congo",c:"242"},{f:"🇨🇮",n:"Ivory Coast",c:"225"},{f:"🇭🇷",n:"Croatia",c:"385"},{f:"🇨🇺",n:"Cuba",c:"53"},{f:"🇩🇰",n:"Denmark",c:"45"},{f:"🇩🇯",n:"Djibouti",c:"253"},{f:"🇪🇬",n:"Egypt",c:"20"},{f:"🇪🇹",n:"Ethiopia",c:"251"},{f:"🇫🇮",n:"Finland",c:"358"},{f:"🇫🇷",n:"France",c:"33"},{f:"🇬🇦",n:"Gabon",c:"241"},{f:"🇬🇲",n:"Gambia",c:"220"},{f:"🇩🇪",n:"Germany",c:"49"},{f:"🇬🇭",n:"Ghana",c:"233"},{f:"🇬🇷",n:"Greece",c:"30"},{f:"🇬🇳",n:"Guinea",c:"224"},{f:"🇮🇳",n:"India",c:"91"},{f:"🇮🇩",n:"Indonesia",c:"62"},{f:"🇮🇷",n:"Iran",c:"98"},{f:"🇮🇶",n:"Iraq",c:"964"},{f:"🇮🇪",n:"Ireland",c:"353"},{f:"🇮🇱",n:"Israel",c:"972"},{f:"🇮🇹",n:"Italy",c:"39"},{f:"🇯🇵",n:"Japan",c:"81"},{f:"🇯🇴",n:"Jordan",c:"962"},{f:"🇰🇪",n:"Kenya",c:"254"},{f:"🇰🇼",n:"Kuwait",c:"965"},{f:"🇱🇧",n:"Lebanon",c:"961"},{f:"🇱🇸",n:"Lesotho",c:"266"},{f:"🇱🇷",n:"Liberia",c:"231"},{f:"🇱🇾",n:"Libya",c:"218"},{f:"🇲🇼",n:"Malawi",c:"265"},{f:"🇲🇾",n:"Malaysia",c:"60"},{f:"🇲🇱",n:"Mali",c:"223"},{f:"🇲🇿",n:"Mozambique",c:"258"},{f:"🇳🇦",n:"Namibia",c:"264"},{f:"🇳🇵",n:"Nepal",c:"977"},{f:"🇳🇱",n:"Netherlands",c:"31"},{f:"🇳🇬",n:"Nigeria",c:"234"},{f:"🇰🇵",n:"North Korea",c:"850"},{f:"🇳🇴",n:"Norway",c:"47"},{f:"🇴🇲",n:"Oman",c:"968"},{f:"🇵🇰",n:"Pakistan",c:"92"},{f:"🇵🇸",n:"Palestine",c:"970"},{f:"🇵🇭",n:"Philippines",c:"63"},{f:"🇵🇱",n:"Poland",c:"48"},{f:"🇵🇹",n:"Portugal",c:"351"},{f:"🇶🇦",n:"Qatar",c:"974"},{f:"🇷🇴",n:"Romania",c:"40"},{f:"🇷🇺",n:"Russia",c:"7"},{f:"🇷🇼",n:"Rwanda",c:"250"},{f:"🇸🇦",n:"Saudi Arabia",c:"966"},{f:"🇸🇳",n:"Senegal",c:"221"},{f:"🇸🇱",n:"Sierra Leone",c:"232"},{f:"🇸🇬",n:"Singapore",c:"65"},{f:"🇸🇴",n:"Somalia",c:"252"},{f:"🇿🇦",n:"South Africa",c:"27"},{f:"🇰🇷",n:"South Korea",c:"82"},{f:"🇸🇸",n:"South Sudan",c:"211"},{f:"🇪🇸",n:"Spain",c:"34"},{f:"🇸🇩",n:"Sudan",c:"249"},{f:"🇸🇪",n:"Sweden",c:"46"},{f:"🇨🇭",n:"Switzerland",c:"41"},{f:"🇸🇾",n:"Syria",c:"963"},{f:"🇹🇼",n:"Taiwan",c:"886"},{f:"🇹🇿",n:"Tanzania",c:"255"},{f:"🇹🇭",n:"Thailand",c:"66"},{f:"🇹🇬",n:"Togo",c:"228"},{f:"🇹🇷",n:"Turkey",c:"90"},{f:"🇺🇬",n:"Uganda",c:"256"},{f:"🇦🇪",n:"UAE",c:"971"},{f:"🇬🇧",n:"UK",c:"44"},{f:"🇺🇸",n:"USA",c:"1"},{f:"🇾🇪",n:"Yemen",c:"967"},{f:"🇿🇲",n:"Zambia",c:"260"},{f:"🇿🇼",n:"Zimbabwe",c:"263"}];
+const cl=document.getElementById('countryList');
+function renderCountries(list){cl.innerHTML='';list.forEach(o=>{const d=document.createElement('div');d.className='country-option';d.innerHTML=`<span style="font-size:20px">${o.f}</span><span>${o.n}</span><span class="c-plus">+${o.c}</span>`;d.onclick=()=>selectCountry(o);cl.appendChild(d);})}
+function selectCountry(o){document.getElementById('countryLabel').innerText=`${o.f} ${o.n}`;document.getElementById('code').value=`+${o.c}`;document.getElementById('countrySheet').classList.remove('open');}
+renderCountries(countries);
+document.getElementById('countrySearch').addEventListener('input',e=>{const q=e.target.value.toLowerCase();const f=countries.filter(x=>x.n.toLowerCase().includes(q)||x.c.includes(q));renderCountries(f);});
+
+// STATS
+async function loadStats(){try{const r=await fetch(`${API}/api/stats`);const d=await r.json();document.getElementById('sPaired').innerText=d.paired??d.total??0;document.getElementById('sConnected').innerText=d.connected??0;document.getElementById('sDis').innerText=d.disconnected??(d.total-d.connected)||0;document.getElementById('sTotal').innerText=d.total??0;document.getElementById('badgeText').innerText=`● ${d.connected||0} connected / ${d.paired||d.total||0} paired`;document.getElementById('dot').style.background='#1ed760';}catch{ document.getElementById('badgeText').innerText='● Server offline';document.getElementById('dot').style.background='#ff4d4d';}}
+loadStats();setInterval(loadStats,5000);
+
+// PAIR
+async function pairReal(){
+ const code=document.getElementById('code').value.replace('+','');const num=document.getElementById('number').value.trim().replace(/\D/g,'');
+ if(!code||!num){document.getElementById('statusMsg').innerText='Select country and enter number';return;}
+ const full=code+num;
+ document.getElementById('pairBtn').disabled=true;document.getElementById('pairBtn').innerText='Requesting...';document.getElementById('statusMsg').innerText='Contacting server...';
+ try{
+  const res=await fetch(`${API}/api/pair`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({number:full})});
+  const data=await res.json();if(!res.ok)throw new Error(data.msg||'Failed');
+  lastCopy=data.copy||data.code.replace(/-/g,'');
+  document.getElementById('pairCode').innerText=data.formatted||data.code;
+  document.getElementById('pairModal').classList.add('show');
+  document.getElementById('pairStatus').innerText='Waiting for you to link...';
+  if(!myNumbers.includes(full)){myNumbers.push(full);localStorage.setItem('storm_my_numbers',JSON.stringify(myNumbers));}
+  checkLoop(full);
+ }catch(err){document.getElementById('statusMsg').innerText='Error: '+err.message}
+ finally{document.getElementById('pairBtn').disabled=false;document.getElementById('pairBtn').innerText='Connect WhatsApp';}
+}
+document.getElementById('pairBtn').addEventListener('click',pairReal);
+function checkLoop(num){let t=0;const iv=setInterval(async()=>{t++;if(t>60){clearInterval(iv);return;}try{const r=await fetch(`${API}/api/status`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({number:num})});const d=await r.json();const el=document.getElementById('pairStatus');if(d.paired&&d.connected){el.innerText='Connected! STORM CYBER MD active ✅';document.getElementById('statusMsg').innerText='Connected! ✅';clearInterval(iv);loadStats();}else if(d.paired){el.innerText=d.msg||'Paired but NOT linked...';document.getElementById('statusMsg').innerText=d.msg||'Paired but NOT linked...';}else el.innerText=d.msg||'Number not paired yet';}catch{}},3000);}
+document.getElementById('copyBtn').onclick=()=>{navigator.clipboard.writeText(lastCopy);const b=document.getElementById('copyBtn');b.innerText='✓ Copied!';b.classList.add('copied');setTimeout(()=>{b.innerText='⎙ Copy Code';b.classList.remove('copied')},1500);}
+document.getElementById('cancelPair').onclick=()=>{document.getElementById('pairModal').classList.remove('show');}
+function renderMyNumbers(){const L=document.getElementById('pairedList');L.innerHTML='';if(!myNumbers.length){L.innerHTML='<p style="text-align:center;color:#5a7362;padding:20px 18px">No numbers yet</p>';return;}myNumbers.forEach(n=>{const d=document.createElement('div');d.className='paired-item';d.innerHTML=`<div><span style="width:10px;height:10px;background:#1ed760;border-radius:50%;display:inline-block;box-shadow:0 0 6px #1ed760"></span> <b style="margin-left:8px">+${n}</b></div><div style="display:flex;gap:8px"><div class="icon-btn" onclick="document.getElementById('numbersSheet').classList.add('open')">📊</div><div class="icon-btn" onclick="askDisconnect('${n}')">⏻</div></div>`;L.appendChild(d);})}
+function askDisconnect(n){pending=n;document.getElementById('confirmText').innerText=`Disconnect +${n}?`;document.getElementById('confirmBox').classList.add('show');}
+document.getElementById('noDis').onclick=()=>{document.getElementById('confirmBox').classList.remove('show');pending=null;}
+document.getElementById('yesDis').onclick=async()=>{if(!pending)return;document.getElementById('confirmBox').classList.remove('show');document.getElementById('loadingOverlay').classList.add('show');try{await fetch(`${API}/api/disconnect`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({number:pending})});myNumbers=myNumbers.filter(x=>x!==pending);localStorage.setItem('storm_my_numbers',JSON.stringify(myNumbers));renderMyNumbers();loadStats();}catch(e){alert('Failed')}finally{document.getElementById('loadingOverlay').classList.remove('show');pending=null;}}
+</script>
+</body>
+  </html>
